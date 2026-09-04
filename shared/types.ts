@@ -17,6 +17,8 @@ export interface Entry {
   status: EntryStatus;
   settledCents: number;
   recurringRuleId?: string | null;
+  cardPurchaseId?: string | null;
+  cardInstallmentId?: string | null;
   paymentMethod?: string | null;
   version: number;
 }
@@ -39,6 +41,7 @@ export interface DashboardSummary {
 export interface AccountSummary {
   id: string;
   name: string;
+  type?: string;
   balanceCents: number;
   reservedCents: number;
   freeCents: number;
@@ -54,6 +57,12 @@ export interface RecurringRule {
   startDate: string;
   endDate?: string | null;
   active: boolean;
+  categoryName?: string | null;
+  incomeSourceName?: string | null;
+  accountId?: string | null;
+  accountName?: string | null;
+  paymentMethod?: string | null;
+  version?: number;
 }
 
 export interface ApiError { error: string; code?: string; siteKey?: string }
