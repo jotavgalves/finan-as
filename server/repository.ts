@@ -32,6 +32,7 @@ function mapEntry(row: any) {
     incomeSourceId: row.income_source_id, incomeSourceName: row.source_name,
     accountId: row.account_id, accountName: row.account_name,
     status: row.status, settledCents: Number(row.settled_cents || 0), recurringRuleId: row.recurring_rule_id,
+    cardPurchaseId: row.card_purchase_id || null, cardInstallmentId: row.card_installment_id || null,
     paymentMethod: row.payment_method, version: Number(row.version || 1)
   };
 }
@@ -77,6 +78,7 @@ export async function createEntry(env: Env, input: any, forcedRecurringRuleId?: 
 
 export async function updateEntry(env: Env, id: string, input: any) {
   const before = await getEntry(env,id); if (!before) throw new HttpError(404,'Lançamento não encontrado.');
+  if (before.cardPurchaseId) throw new HttpError(409,'Esta obrigação pertence a uma compra no cartão. Edite a compra em Admin > Compras.','CARD_PURCHASE_LINKED');
   const expected = input.expectedVersion == null ? before.version : Number(input.expectedVersion);
   if (expected !== before.version) throw new HttpError(409,'Este lançamento foi alterado em outro dispositivo. Atualize a tela.','VERSION_CONFLICT');
   const amount = input.amountCents == null ? before.amountCents : Number(input.amountCents);
@@ -109,8 +111,9 @@ export async function settleEntry(env: Env, entryId: string, input: any) {
   const after=await getEntry(env,entryId);await audit(env,'entry.settled','entry',entryId,entry,{settlementId,amountCents:amount,entry:after});return after;
 }
 
-export async function deleteEntry(env: Env,id:string){
+export async function deleteEntry(env: Env,id:string,allowCardLinked=false){
   const before=await getEntry(env,id);if(!before)throw new HttpError(404,'Lançamento não encontrado.');
+  if(before.cardPurchaseId&&!allowCardLinked)throw new HttpError(409,'Esta obrigação pertence a uma compra no cartão. Exclua ou edite a compra em Admin > Compras.','CARD_PURCHASE_LINKED');
   const settlements=await env.DB.prepare('SELECT * FROM settlements WHERE entry_id=?').bind(id).all<any>();
   const now=nowIso();const statements:any[]=[];
   for(const st of settlements.results||[]){
