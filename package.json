@@ -8,8 +8,9 @@
     "build": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json && vite build",
     "preview": "vite preview",
     "cf:dev": "wrangler pages dev dist",
-    "db:migrate:local": "wrangler d1 migrations apply fluxo-dev --local",
-    "db:migrate:remote": "wrangler d1 migrations apply fluxo-prod --remote",
+    "cf:bootstrap": "node scripts/cloudflare-bootstrap.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply fluxo-local --local --persist-to=.wrangler/local",
+    "db:validate": "wrangler d1 migrations apply fluxo-ci --local --persist-to=.wrangler/ci",
     "test": "vitest run"
   },
   "dependencies": {
