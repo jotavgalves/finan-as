@@ -1,0 +1,8 @@
+{
+  "name": "fluxo-financial-os",
+  "compatibility_date": "2026-09-04",
+  "pages_build_output_dir": "dist",
+  "vars": {
+    "SESSION_TTL_DAYS": "30"
+  }
+}
