@@ -1,0 +1,7 @@
+import type { Env } from '../../server/env';
+import { audit } from '../../server/repository';
+import { errorResponse, HttpError, json, nowIso, readJson, uuid } from '../../server/http';
+
+async function list(env:Env){const r=await env.DB.prepare(`SELECT s.id,s.name,s.expected_monthly_cents,COUNT(e.id) entry_count FROM income_sources s LEFT JOIN entries e ON e.income_source_id=s.id AND e.deleted_at IS NULL GROUP BY s.id ORDER BY s.name`).all<any>();return (r.results||[]).map(x=>({id:x.id,name:x.name,expectedMonthlyCents:Number(x.expected_monthly_cents||0),entryCount:Number(x.entry_count||0)}));}
+export const onRequestGet:PagesFunction<Env>=async({env})=>{try{return json({sources:await list(env)});}catch(error){return errorResponse(error)}};
+export const onRequestPost:PagesFunction<Env>=async({request,env})=>{try{const b=await readJson<any>(request),name=(b.name||'').trim(),expected=Number(b.expectedMonthlyCents||0);if(!name)throw new HttpError(400,'Nome obrigatório.');if(!Number.isInteger(expected)||expected<0)throw new HttpError(400,'Valor esperado inválido.');const id=uuid(),now=nowIso();await env.DB.prepare('INSERT INTO income_sources (id,name,expected_monthly_cents,created_at,updated_at) VALUES (?,?,?,?,?)').bind(id,name,expected,now,now).run();await audit(env,'income_source.created','income_source',id,null,{id,name,expectedMonthlyCents:expected});return json({sources:await list(env)},201);}catch(error){return errorResponse(error)}};
