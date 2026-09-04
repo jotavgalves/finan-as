@@ -4,5 +4,12 @@
   "pages_build_output_dir": "dist",
   "vars": {
     "SESSION_TTL_DAYS": "30"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fluxo-local",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 }
