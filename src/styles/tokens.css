@@ -1,0 +1,18 @@
+:root{
+  --bg:#0a0c0e;
+  --panel:#101316;
+  --panel2:#15191d;
+  --line:#242a30;
+  --line2:#30373e;
+  --text:#f3f4ef;
+  --muted:#8b9299;
+  --muted2:#5e666e;
+  --accent:#c7f16b;
+  --income:#9dd9b4;
+  --expense:#f09b91;
+  --planned:#9ebeea;
+  --warning:#e4c878;
+  --radius:18px;
+  --tap:48px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
