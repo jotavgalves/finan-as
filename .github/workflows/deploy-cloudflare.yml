@@ -1,0 +1,71 @@
+name: Deploy Cloudflare Pages
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
+      TURNSTILE_SITE_KEY: ${{ secrets.TURNSTILE_SITE_KEY }}
+      SESSION_TTL_DAYS: ${{ vars.SESSION_TTL_DAYS || '30' }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'finan-as' }}
+      CLOUDFLARE_D1_PROD: ${{ vars.CLOUDFLARE_D1_PROD || 'finan-as-prod' }}
+      CLOUDFLARE_D1_PREVIEW: ${{ vars.CLOUDFLARE_D1_PREVIEW || 'finan-as-preview' }}
+      CLOUDFLARE_PRODUCTION_BRANCH: main
+    steps:
+      - name: Check deployment secrets
+        id: guard
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$ADMIN_PASSWORD" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deploy skipped: add CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and ADMIN_PASSWORD as repository secrets."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Install dependencies
+        if: steps.guard.outputs.enabled == 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        if: steps.guard.outputs.enabled == 'true'
+        run: npm run build
+
+      - name: Bootstrap D1, Pages, secrets and deploy
+        if: steps.guard.outputs.enabled == 'true'
+        env:
+          GITHUB_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_COMMIT_MESSAGE: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.display_title || 'Manual Cloudflare deployment' }}
+        run: npm run cf:bootstrap
