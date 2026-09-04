@@ -37,6 +37,8 @@ export const api = {
   entries: (from: string, to: string) => getCached<any>(`/api/entries?from=${from}&to=${to}`),
   accounts: () => getCached<any>('/api/accounts'),
   recurring: () => getCached<any>('/api/recurring'),
+  reserves: () => getCached<any>('/api/reserves'),
+  cards: () => getCached<any>('/api/cards'),
   planning: (month: string) => getCached<any>(`/api/planning/month?month=${month}`),
   integrity: () => request<any>('/api/admin/integrity'),
   createEntry: async (body: unknown) => {
@@ -46,5 +48,8 @@ export const api = {
   patchEntry: (id: string, body: unknown) => request(`/api/entries/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteEntry: (id: string) => request(`/api/entries/${id}`, { method: 'DELETE' }),
   settle: (entryId: string, body: unknown) => request('/api/settlements', { method: 'POST', body: JSON.stringify({ entryId, ...(body as object) }) }),
-  createRecurring: (body: unknown) => request('/api/recurring', { method: 'POST', body: JSON.stringify(body) })
+  createRecurring: (body: unknown) => request('/api/recurring', { method: 'POST', body: JSON.stringify(body) }),
+  setMonthlyTarget: (month: string, targetCents: number) => request('/api/planning/target', { method: 'PUT', body: JSON.stringify({ month, targetCents }) }),
+  createReserve: (body: unknown) => request('/api/reserves', { method: 'POST', body: JSON.stringify(body) }),
+  createCard: (body: unknown) => request('/api/cards', { method: 'POST', body: JSON.stringify(body) })
 };
