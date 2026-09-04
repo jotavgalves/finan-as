@@ -1,0 +1,4 @@
+import type { Env } from '../../../server/env';
+import { errorResponse } from '../../../server/http';
+
+export const onRequestGet:PagesFunction<Env>=async({env})=>{try{const tables=['accounts','categories','income_sources','recurring_rules','entries','settlements','account_ledger','reserves','reserve_allocations','cards','card_purchases','card_installments','monthly_targets','audit_log'];const data:Record<string,unknown[]>={};for(const table of tables){const r=await env.DB.prepare(`SELECT * FROM ${table}`).all<any>();data[table]=r.results||[];}return new Response(JSON.stringify({version:1,exportedAt:new Date().toISOString(),data},null,2),{headers:{'content-type':'application/json; charset=utf-8','content-disposition':`attachment; filename="fluxo-backup-${new Date().toISOString().slice(0,10)}.json"`,'cache-control':'no-store'}});}catch(error){return errorResponse(error)}};
