@@ -5,6 +5,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import './styles/pages/flow.css';
+import './styles/pages/admin.css';
 
 registerSW({ immediate: true });
 render(<App />, document.getElementById('app')!);
