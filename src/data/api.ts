@@ -30,7 +30,7 @@ export async function getCached<T>(path: string): Promise<T> {
 }
 
 const patch = (path:string, body:unknown) => request(path,{method:'PATCH',body:JSON.stringify(body)});
-const del = (path:string) => request(path,{method:'DELETE'});
+const del = (path:string, body?:unknown) => request(path,{method:'DELETE',body:body===undefined?undefined:JSON.stringify(body)});
 const post = (path:string, body:unknown) => request(path,{method:'POST',body:JSON.stringify(body)});
 
 export const api = {
@@ -48,6 +48,10 @@ export const api = {
   incomeSources: () => getCached<any>('/api/income-sources'),
   planning: (month: string) => getCached<any>(`/api/planning/month?month=${month}`),
   integrity: () => request<any>('/api/admin/integrity'),
+  adminSessions: () => request<any>('/api/admin/sessions'),
+  revokeSession: (id:string) => del('/api/admin/sessions',{id}),
+  audit: (limit=100) => request<any>(`/api/admin/audit?limit=${limit}`),
+  backupUrl: '/api/admin/backup',
   createEntry: async (body: unknown) => {
     if (!navigator.onLine) return queueWrite({ method: 'POST', path: '/api/entries', body });
     return post('/api/entries',body);
