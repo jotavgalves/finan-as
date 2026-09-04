@@ -13,6 +13,6 @@ export const onRequestPatch: PagesFunction<Env> = async ({ request, params, env 
 };
 
 export const onRequestDelete: PagesFunction<Env> = async ({ params, env }) => {
-  try { await deleteEntry(env,String(params.id)); return json({ok:true}); }
+  try { const id=String(params.id),linked=await env.DB.prepare('SELECT card_installment_id FROM entries WHERE id=?').bind(id).first<any>();await deleteEntry(env,id);if(linked?.card_installment_id)await env.DB.prepare("UPDATE card_installments SET status='planned' WHERE id=?").bind(linked.card_installment_id).run();return json({ok:true}); }
   catch(error){return errorResponse(error);}
 };
