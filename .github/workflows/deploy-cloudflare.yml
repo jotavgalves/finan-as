@@ -38,7 +38,16 @@ jobs:
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$ADMIN_PASSWORD" ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare deploy skipped: add CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and ADMIN_PASSWORD as repository secrets."
+            echo "::warning::Cloudflare deploy not configured. Add CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and ADMIN_PASSWORD as repository secrets."
+            {
+              echo "## Cloudflare deploy not configured"
+              echo ""
+              echo "The application build is valid, but production deployment is disabled until these repository secrets exist:"
+              echo "- CLOUDFLARE_API_TOKEN"
+              echo "- CLOUDFLARE_ACCOUNT_ID"
+              echo "- ADMIN_PASSWORD"
+              echo "- SESSION_SECRET (recommended)"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
@@ -69,3 +78,21 @@ jobs:
           GITHUB_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
           GITHUB_COMMIT_MESSAGE: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.display_title || 'Manual Cloudflare deployment' }}
         run: npm run cf:bootstrap
+
+      - name: Verify production health
+        if: steps.guard.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          URL="https://${CLOUDFLARE_PAGES_PROJECT}.pages.dev/api/health"
+          for attempt in $(seq 1 12); do
+            if curl --silent --show-error --fail --max-time 15 "$URL" | tee /tmp/health.json | grep -q '"ok":true'; then
+              echo "Production health check passed: $URL"
+              echo "## Production ready" >> "$GITHUB_STEP_SUMMARY"
+              echo "Health check passed at $URL" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Health check attempt ${attempt}/12 failed; retrying..."
+            sleep 5
+          done
+          echo "Production deployment did not pass the health check: $URL"
+          exit 1
