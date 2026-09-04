@@ -1,0 +1,8 @@
+# Copie para .dev.vars no desenvolvimento local. Nunca commit a senha real.
+ADMIN_PASSWORD=troque-por-uma-senha-forte
+SESSION_SECRET=gere-uma-chave-aleatoria-longa-com-pelo-menos-32-bytes
+SESSION_TTL_DAYS=30
+
+# Opcionais. Se configurados, o Turnstile passa a ser exigido depois de falhas repetidas.
+TURNSTILE_SECRET=
+TURNSTILE_SITE_KEY=
