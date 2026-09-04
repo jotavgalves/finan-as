@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "cf:dev": "wrangler pages dev dist",
     "cf:bootstrap": "node scripts/cloudflare-bootstrap.mjs",
-    "db:migrate:local": "wrangler d1 migrations apply fluxo-local --local --persist-to=.wrangler/local",
-    "db:validate": "wrangler d1 migrations apply fluxo-ci --local --persist-to=.wrangler/ci",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --persist-to=.wrangler/local",
+    "db:validate": "wrangler d1 migrations apply DB --local --persist-to=.wrangler/ci",
     "test": "vitest run"
   },
   "dependencies": {
