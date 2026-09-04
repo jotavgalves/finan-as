@@ -70,7 +70,7 @@ export async function createEntry(env: Env, input: any, forcedRecurringRuleId?: 
   const sourceId = input.kind==='income' ? await getOrCreateSource(env,input.incomeSourceName) : null;
   const id = input.id || uuid(), now = nowIso();
   await env.DB.prepare(`INSERT INTO entries (id,kind,description,amount_cents,competence_date,due_date,category_id,income_source_id,account_id,status,payment_method,recurring_rule_id,occurrence_date,created_at,updated_at,version)
-    VALUES (?,?,?,?,?,?,?,?,?,'planned',?,?,?,?,?,?,1)`)
+    VALUES (?,?,?,?,?,?,?,?,?,'planned',?,?,?,?,?,1)`)
     .bind(id,input.kind,input.description.trim(),amount,input.competenceDate||dueDate,dueDate,categoryId,sourceId,input.accountId||null,input.paymentMethod||null,forcedRecurringRuleId||null,forcedOccurrence||null,now,now).run();
   const entry = await getEntry(env,id); await audit(env,'entry.created','entry',id,null,entry); return entry;
 }
