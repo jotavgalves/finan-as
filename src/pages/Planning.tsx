@@ -14,7 +14,7 @@ export function Planning(props: { month: string }) {
   useEffect(() => { load().catch(() => setData(null)); }, [props.month]);
 
   async function saveTarget() {
-    await api.patchEntry('__monthly_target__', { month: props.month, targetCents: Math.round(Number(target || 0) * 100) });
+    await api.setMonthlyTarget(props.month, Math.round(Number(target || 0) * 100));
     await load();
   }
 
