@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "cf:dev": "wrangler pages dev dist",
     "cf:bootstrap": "node scripts/cloudflare-bootstrap.mjs",
+    "cf:validate": "wrangler d1 list --help >/dev/null && wrangler d1 create --help >/dev/null && wrangler d1 migrations apply --help >/dev/null && wrangler pages project list --help >/dev/null && wrangler pages project create --help >/dev/null && wrangler pages secret bulk --help >/dev/null && wrangler pages deploy --help >/dev/null",
     "db:migrate:local": "wrangler d1 migrations apply DB --local --persist-to=.wrangler/local",
     "db:validate": "wrangler d1 migrations apply DB --local --persist-to=.wrangler/ci",
     "test": "vitest run"
