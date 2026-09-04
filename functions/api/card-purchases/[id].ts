@@ -1,5 +1,5 @@
 import type { Env } from '../../../server/env';
-import { audit, getOrCreateCategory } from '../../../server/repository';
+import { audit, deleteEntry, getOrCreateCategory } from '../../../server/repository';
 import { errorResponse, HttpError, json, nowIso, readJson, uuid } from '../../../server/http';
 
 function addMonths(date:string,n:number){const d=new Date(`${date}T12:00:00Z`),day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0,12)).getUTCDate();d.setUTCDate(Math.min(day,last));return d.toISOString().slice(0,10)}
@@ -31,4 +31,10 @@ export const onRequestPatch:PagesFunction<Env>=async({request,env,params})=>{try
   await env.DB.batch(statements);const after=await before(env,id);await audit(env,'card_purchase.updated','card_purchase',id,old,after);return json({ok:true});
 }catch(error){return errorResponse(error)}};
 
-export const onRequestDelete:PagesFunction<Env>=async({env,params})=>{try{const id=String(params.id),old=await before(env,id);if(!old)throw new HttpError(404,'Compra não encontrada.');if(await hasSettledInstallment(env,id))throw new HttpError(409,'Não é possível excluir uma compra com parcela já paga. Exclua/reverta primeiro as baixas relacionadas.');const now=nowIso();await env.DB.batch([env.DB.prepare('UPDATE entries SET deleted_at=?,updated_at=?,version=version+1 WHERE card_purchase_id=? AND deleted_at IS NULL').bind(now,now,id),env.DB.prepare('DELETE FROM card_purchases WHERE id=?').bind(id)]);await audit(env,'card_purchase.deleted','card_purchase',id,old,null);return json({ok:true});}catch(error){return errorResponse(error)}};
+export const onRequestDelete:PagesFunction<Env>=async({env,params})=>{try{
+  const id=String(params.id),old=await before(env,id);if(!old)throw new HttpError(404,'Compra não encontrada.');
+  const linked=await env.DB.prepare('SELECT id FROM entries WHERE card_purchase_id=? AND deleted_at IS NULL ORDER BY due_date').bind(id).all<any>();
+  for(const row of linked.results||[])await deleteEntry(env,row.id,true);
+  await env.DB.prepare('DELETE FROM card_purchases WHERE id=?').bind(id).run();
+  await audit(env,'card_purchase.deleted','card_purchase',id,old,{reversedEntries:(linked.results||[]).length});return json({ok:true});
+}catch(error){return errorResponse(error)}};
