@@ -3,7 +3,9 @@ import type { AccountSummary, RecurringRule } from '../../shared/types';
 import { api } from '../data/api';
 import { money } from '../lib/money';
 
-export function More(props: { onAdmin: () => void }) {
+type Destination = 'income'|'expenses'|'admin';
+
+export function More(props: { onAdmin: () => void; onNavigate: (page: Destination) => void }) {
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
   const [rules, setRules] = useState<RecurringRule[]>([]);
   const [reserves, setReserves] = useState<any[]>([]);
@@ -14,7 +16,10 @@ export function More(props: { onAdmin: () => void }) {
     }).catch(() => undefined);
   }, []);
   return <>
-    <div class="sectionTitle"><div><h2>Contas financeiras</h2><p>Onde o dinheiro está fisicamente.</p></div><button class="btn" onClick={props.onAdmin}>Admin</button></div>
+    <div class="sectionTitle"><div><h2>Análises</h2><p>Acesso rápido às visões filtráveis que ficam fora da barra inferior no Android.</p></div></div>
+    <div class="cards"><button class="miniCard" style="text-align:left;color:inherit" onClick={()=>props.onNavigate('income')}><small>Receitas</small><strong>Entradas</strong><div class="muted">Filtrar por fonte, conta, status e período.</div></button><button class="miniCard" style="text-align:left;color:inherit" onClick={()=>props.onNavigate('expenses')}><small>Despesas</small><strong>Saídas</strong><div class="muted">Filtrar por categoria, conta, forma de pagamento e período.</div></button><button class="miniCard" style="text-align:left;color:inherit" onClick={props.onAdmin}><small>Admin</small><strong>Estrutura</strong><div class="muted">Integridade, segurança e manutenção.</div></button></div>
+
+    <div class="sectionTitle"><div><h2>Contas financeiras</h2><p>Onde o dinheiro está fisicamente.</p></div></div>
     <div class="cards">{accounts.map(a => <div class="miniCard" key={a.id}><small>{a.name}</small><strong>{money(a.balanceCents)}</strong><div class="muted">{money(a.freeCents)} livre · {money(a.reservedCents)} reservado</div></div>)}</div>
 
     <div class="sectionTitle"><div><h2>Reservas</h2><p>Para que parte do seu dinheiro está separada.</p></div></div>
