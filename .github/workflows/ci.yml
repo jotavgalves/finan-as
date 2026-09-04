@@ -21,5 +21,7 @@ jobs:
           cache-dependency-path: package.json
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Validate D1 migrations
+        run: npm run db:validate
       - name: Typecheck and build
         run: npm run build
