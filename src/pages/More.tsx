@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { AccountSummary, RecurringRule } from '../../shared/types';
+import { InstallAppButton } from '../components/InstallAppButton';
 import { api } from '../data/api';
 import { money } from '../lib/money';
 
@@ -16,6 +17,8 @@ export function More(props: { onAdmin: () => void; onNavigate: (page: Destinatio
     }).catch(() => undefined);
   }, []);
   return <>
+    <div class="sectionTitle"><div><h2>Aplicativo</h2><p>Instalação standalone quando o navegador Android disponibilizar o prompt.</p></div><InstallAppButton /></div>
+
     <div class="sectionTitle"><div><h2>Análises</h2><p>Acesso rápido às visões filtráveis que ficam fora da barra inferior no Android.</p></div></div>
     <div class="cards"><button class="miniCard" style="text-align:left;color:inherit" onClick={()=>props.onNavigate('income')}><small>Receitas</small><strong>Entradas</strong><div class="muted">Filtrar por fonte, conta, status e período.</div></button><button class="miniCard" style="text-align:left;color:inherit" onClick={()=>props.onNavigate('expenses')}><small>Despesas</small><strong>Saídas</strong><div class="muted">Filtrar por categoria, conta, forma de pagamento e período.</div></button><button class="miniCard" style="text-align:left;color:inherit" onClick={props.onAdmin}><small>Admin</small><strong>Estrutura</strong><div class="muted">Integridade, segurança e manutenção.</div></button></div>
 
