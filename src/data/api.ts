@@ -29,6 +29,10 @@ export async function getCached<T>(path: string): Promise<T> {
   }
 }
 
+const patch = (path:string, body:unknown) => request(path,{method:'PATCH',body:JSON.stringify(body)});
+const del = (path:string) => request(path,{method:'DELETE'});
+const post = (path:string, body:unknown) => request(path,{method:'POST',body:JSON.stringify(body)});
+
 export const api = {
   session: () => request<{ authenticated: boolean; turnstileSiteKey?: string }>('/api/auth/session'),
   login: (password: string, turnstileToken?: string) => request<{ ok: true }>('/api/auth/login', { method: 'POST', body: JSON.stringify({ password, turnstileToken }) }),
@@ -39,17 +43,38 @@ export const api = {
   recurring: () => getCached<any>('/api/recurring'),
   reserves: () => getCached<any>('/api/reserves'),
   cards: () => getCached<any>('/api/cards'),
+  cardPurchases: () => getCached<any>('/api/card-purchases'),
+  categories: () => getCached<any>('/api/categories'),
+  incomeSources: () => getCached<any>('/api/income-sources'),
   planning: (month: string) => getCached<any>(`/api/planning/month?month=${month}`),
   integrity: () => request<any>('/api/admin/integrity'),
   createEntry: async (body: unknown) => {
     if (!navigator.onLine) return queueWrite({ method: 'POST', path: '/api/entries', body });
-    return request('/api/entries', { method: 'POST', body: JSON.stringify(body) });
+    return post('/api/entries',body);
   },
-  patchEntry: (id: string, body: unknown) => request(`/api/entries/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
-  deleteEntry: (id: string) => request(`/api/entries/${id}`, { method: 'DELETE' }),
-  settle: (entryId: string, body: unknown) => request('/api/settlements', { method: 'POST', body: JSON.stringify({ entryId, ...(body as object) }) }),
-  createRecurring: (body: unknown) => request('/api/recurring', { method: 'POST', body: JSON.stringify(body) }),
+  patchEntry: (id: string, body: unknown) => patch(`/api/entries/${id}`,body),
+  deleteEntry: (id: string) => del(`/api/entries/${id}`),
+  settle: (entryId: string, body: unknown) => post('/api/settlements',{entryId,...(body as object)}),
+  createRecurring: (body: unknown) => post('/api/recurring',body),
+  patchRecurring: (id:string,body:unknown)=>patch(`/api/recurring/${id}`,body),
+  deleteRecurring: (id:string)=>del(`/api/recurring/${id}`),
   setMonthlyTarget: (month: string, targetCents: number) => request('/api/planning/target', { method: 'PUT', body: JSON.stringify({ month, targetCents }) }),
-  createReserve: (body: unknown) => request('/api/reserves', { method: 'POST', body: JSON.stringify(body) }),
-  createCard: (body: unknown) => request('/api/cards', { method: 'POST', body: JSON.stringify(body) })
+  createReserve: (body: unknown) => post('/api/reserves',body),
+  patchReserve: (id:string,body:unknown)=>patch(`/api/reserves/${id}`,body),
+  deleteReserve: (id:string)=>del(`/api/reserves/${id}`),
+  createCard: (body: unknown) => post('/api/cards',body),
+  patchCard: (id:string,body:unknown)=>patch(`/api/cards/${id}`,body),
+  deleteCard: (id:string)=>del(`/api/cards/${id}`),
+  createCardPurchase: (body:unknown)=>post('/api/card-purchases',body),
+  patchCardPurchase: (id:string,body:unknown)=>patch(`/api/card-purchases/${id}`,body),
+  deleteCardPurchase: (id:string)=>del(`/api/card-purchases/${id}`),
+  createAccount: (body:unknown)=>post('/api/accounts',body),
+  patchAccount: (id:string,body:unknown)=>patch(`/api/accounts/${id}`,body),
+  deleteAccount: (id:string)=>del(`/api/accounts/${id}`),
+  createCategory: (body:unknown)=>post('/api/categories',body),
+  patchCategory: (id:string,body:unknown)=>patch(`/api/categories/${id}`,body),
+  deleteCategory: (id:string)=>del(`/api/categories/${id}`),
+  createIncomeSource: (body:unknown)=>post('/api/income-sources',body),
+  patchIncomeSource: (id:string,body:unknown)=>patch(`/api/income-sources/${id}`,body),
+  deleteIncomeSource: (id:string)=>del(`/api/income-sources/${id}`)
 };
