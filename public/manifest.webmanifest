@@ -1,0 +1,21 @@
+{
+  "name": "Fluxo — Financeiro pessoal",
+  "short_name": "Fluxo",
+  "description": "Planejamento financeiro pessoal, contas, receitas, despesas e fluxo de caixa.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0c0e",
+  "theme_color": "#0a0c0e",
+  "icons": [
+    {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png"},
+    {"src":"/icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Nova despesa","short_name":"Despesa","url":"/?action=expense"},
+    {"name":"Nova receita","short_name":"Receita","url":"/?action=income"},
+    {"name":"Fluxo","short_name":"Fluxo","url":"/?page=flow"}
+  ]
+}
