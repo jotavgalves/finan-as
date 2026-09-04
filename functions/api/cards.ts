@@ -1,0 +1,9 @@
+import type { Env } from '../../server/env';
+import { audit } from '../../server/repository';
+import { errorResponse, HttpError, json, nowIso, readJson, uuid } from '../../server/http';
+
+async function listCards(env:Env){const result=await env.DB.prepare(`SELECT c.*,a.name payment_account_name,COALESCE((SELECT SUM(ci.amount_cents) FROM card_installments ci JOIN card_purchases cp ON cp.id=ci.purchase_id WHERE cp.card_id=c.id AND ci.status IN ('planned','posted')),0) committed_cents FROM cards c LEFT JOIN accounts a ON a.id=c.payment_account_id WHERE c.archived_at IS NULL ORDER BY c.name`).all<any>();return(result.results||[]).map(c=>({id:c.id,name:c.name,limitCents:Number(c.limit_cents),committedCents:Number(c.committed_cents||0),closingDay:Number(c.closing_day),dueDay:Number(c.due_day),paymentAccountId:c.payment_account_id,paymentAccountName:c.payment_account_name,version:Number(c.version||1)}));}
+
+export const onRequestGet:PagesFunction<Env>=async({env})=>{try{return json({cards:await listCards(env)});}catch(error){return errorResponse(error);}};
+
+export const onRequestPost:PagesFunction<Env>=async({request,env})=>{try{const body=await readJson<any>(request),name=(body.name||'').trim(),limit=Number(body.limitCents||0),closing=Number(body.closingDay),due=Number(body.dueDay);if(!name)throw new HttpError(400,'Nome obrigatório.');if(!Number.isInteger(limit)||limit<0||closing<1||closing>31||due<1||due>31)throw new HttpError(400,'Dados do cartão inválidos.');const id=uuid(),now=nowIso();await env.DB.prepare('INSERT INTO cards (id,name,payment_account_id,limit_cents,closing_day,due_day,created_at,updated_at,version) VALUES (?,?,?,?,?,?,?,?,1)').bind(id,name,body.paymentAccountId||null,limit,closing,due,now,now).run();await audit(env,'card.created','card',id,null,{name,limitCents:limit,closingDay:closing,dueDay:due});return json({cards:await listCards(env)},201);}catch(error){return errorResponse(error);}};
