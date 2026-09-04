@@ -1,0 +1,28 @@
+{
+  "name": "fluxo-financial-os",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "cf:dev": "wrangler pages dev dist --d1 DB=fluxo-dev",
+    "db:migrate:local": "wrangler d1 migrations apply fluxo-dev --local",
+    "db:migrate:remote": "wrangler d1 migrations apply fluxo-prod --remote",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@preact/signals": "^1.3.2",
+    "preact": "^10.27.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260904.0",
+    "@preact/preset-vite": "^2.10.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vite-plugin-pwa": "^1.0.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.33.1"
+  }
+}
